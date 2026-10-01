@@ -11,7 +11,6 @@ const idleTimeout = Duration(seconds: 15);
 
 // Palette lifted from the new-lcd-pattern design: deep navy, neon blue, gold.
 const _bgTop = Color(0xFF0A1633);
-const _bgBottom = Color(0xFF04081A);
 const _gold = Color(0xFFE8B84B);
 const _blue = Color(0xFF4DA6FF);
 const _blueDim = Color(0xFF1E3A66);
@@ -106,10 +105,9 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [_bgTop, _bgBottom],
+          image: DecorationImage(
+            image: AssetImage('assets/lcd_bg.jpg'),
+            fit: BoxFit.cover,
           ),
         ),
         child: SafeArea(
@@ -146,22 +144,13 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
 }
 
 /// Screen saver — shown whenever no balance message is being displayed.
+/// The background artwork already carries the Solaire branding.
 class _IdleScreen extends StatelessWidget {
   const _IdleScreen();
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'SOLAIRE',
-        style: TextStyle(
-          color: _gold,
-          fontSize: 72,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 16,
-        ),
-      ),
-    );
+    return const SizedBox.expand();
   }
 }
 
@@ -187,16 +176,18 @@ class _ActiveScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
       child: Column(
         children: [
-          Text(
-            ok ? 'SOLAIRE' : 'CARD NOT RECOGNIZED',
-            style: TextStyle(
-              color: ok ? _gold : _error,
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 8,
+          // Clearance for the SOLAIRE logo baked into the background artwork.
+          const SizedBox(height: 72),
+          if (!ok)
+            const Text(
+              'CARD NOT RECOGNIZED',
+              style: TextStyle(
+                color: _error,
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 8,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
           if (inquiry.patronName != null)
             Text(
               inquiry.patronName!.toUpperCase(),

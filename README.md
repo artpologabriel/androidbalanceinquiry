@@ -30,7 +30,10 @@ Port `8883` enables TLS automatically.
 
 ## Screens
 
-- **Idle** — Solaire wordmark (screensaver)
+Background artwork: `assets/lcd_bg.jpg` (Solaire logo + neon edge strips are
+baked into the image).
+
+- **Idle** — bare background (screensaver)
 - **Active** — E-TICKETS WON, FUN CREDIT BALANCE, E-TICKETS BALANCE; auto-returns
   to idle after 15s; `CARD_NOT_FOUND` shows a red state
 
