@@ -34,7 +34,7 @@ class BalanceDisplayApp extends StatelessWidget {
     return MaterialApp(
       title: 'Solaire Balance Display',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(useMaterial3: true),
+      theme: ThemeData.dark(),
       home: const BalanceDisplayPage(),
     );
   }

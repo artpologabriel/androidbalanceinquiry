@@ -27,6 +27,9 @@ jobs:
             --project-name solaire_balance_display \
             --org com.solaire \
             --platforms android
+          # flutter create adds the counter-app template test, which references
+          # a MyApp class that does not exist in this app.
+          rm -f test/widget_test.dart
 
       - name: Install dependencies
         run: flutter pub get
