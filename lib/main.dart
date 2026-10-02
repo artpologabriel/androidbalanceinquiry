@@ -108,7 +108,7 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/lcd_bg.jpg'),
+            image: AssetImage('assets/lcd_bg_portrait.jpg'),
             fit: BoxFit.cover,
           ),
         ),

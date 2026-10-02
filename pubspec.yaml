@@ -21,3 +21,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/lcd_bg.jpg
+    - assets/lcd_bg_portrait.jpg
