@@ -16,17 +16,19 @@ ID. Persisted on the device.
 
 Build-time defaults via `--dart-define`:
 
+Defaults match the ESP32 swipe station (`swipe.ino`):
+
 ```bash
 flutter build apk --release \
-  --dart-define=MQTT_HOST=broker.local \
-  --dart-define=MQTT_PORT=1883 \
-  --dart-define=MQTT_USERNAME=display \
-  --dart-define=MQTT_PASSWORD=secret \
+  --dart-define=MQTT_HOST=mqtt.solaireresort.com \
+  --dart-define=MQTT_PORT=8883 \
   --dart-define=FLOOR_ID=floor1 \
-  --dart-define=MACHINE_ID=MACH-001
+  --dart-define=MACHINE_ID=MACH-101
 ```
 
-Port `8883` enables TLS automatically.
+Port `8883` enables TLS automatically. MQTT credentials are **not** baked into
+defaults — this repo is public; set them per device on the settings screen (or
+via `--dart-define=MQTT_USERNAME/MQTT_PASSWORD` in a private CI environment).
 
 ## Screens
 
