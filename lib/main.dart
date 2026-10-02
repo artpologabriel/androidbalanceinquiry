@@ -13,7 +13,6 @@ const idleTimeout = Duration(seconds: 15);
 const _bgTop = Color(0xFF0A1633);
 const _gold = Color(0xFFE8B84B);
 const _blue = Color(0xFF4DA6FF);
-const _blueDim = Color(0xFF1E3A66);
 const _error = Color(0xFFE05252);
 
 void main() {
@@ -243,25 +242,40 @@ class _ActiveScreen extends StatelessWidget {
               inquiry.patronName!.toUpperCase(),
               style: const TextStyle(color: Colors.white70, fontSize: 16),
             ),
-          const SizedBox(height: 8),
-          _HighlightBox(
-            label: 'E-TICKETS WON',
-            value: _fmt(inquiry.ticketsWon),
-            icon: Icons.confirmation_num_outlined,
-          ),
-          const Spacer(),
-          _BalanceCard(
-            label: 'FUN CREDIT BALANCE',
-            value: _fmt(inquiry.points),
-            icon: Icons.paid_outlined,
-            accent: _gold,
-          ),
-          const SizedBox(height: 12),
-          _BalanceCard(
-            label: 'E-TICKETS BALANCE',
-            value: _fmt(inquiry.tickets),
-            icon: Icons.confirmation_num_outlined,
-            accent: _blue,
+          // Balance cards centered in the remaining space.
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FractionallySizedBox(
+                    widthFactor: 0.85,
+                    child: SizedBox(
+                      height: 150,
+                      child: _BalanceCard(
+                        label: 'FUN CREDIT BALANCE',
+                        value: _fmt(inquiry.points),
+                        icon: Icons.paid_outlined,
+                        accent: _gold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FractionallySizedBox(
+                    widthFactor: 0.85,
+                    child: SizedBox(
+                      height: 150,
+                      child: _BalanceCard(
+                        label: 'E-TICKETS BALANCE',
+                        value: _fmt(inquiry.tickets),
+                        icon: Icons.confirmation_num_outlined,
+                        accent: _blue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -272,61 +286,6 @@ class _ActiveScreen extends StatelessWidget {
               letterSpacing: 6,
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HighlightBox extends StatelessWidget {
-  const _HighlightBox({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 48),
-      decoration: BoxDecoration(
-        color: _blueDim.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _blue, width: 2),
-        boxShadow: [
-          BoxShadow(color: _blue.withValues(alpha: 0.35), blurRadius: 24),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    letterSpacing: 4,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 72,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(icon, color: _blue, size: 64),
         ],
       ),
     );
@@ -356,6 +315,7 @@ class _BalanceCard extends StatelessWidget {
         border: Border.all(color: accent, width: 2),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             label,
