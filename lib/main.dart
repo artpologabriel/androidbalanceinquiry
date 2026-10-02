@@ -199,7 +199,19 @@ class _IdleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox.expand();
+    return const Center(
+      child: Text(
+        'SWIPE TO CHECK\nCARD BALANCE',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 34,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 4,
+          height: 1.5,
+        ),
+      ),
+    );
   }
 }
 
