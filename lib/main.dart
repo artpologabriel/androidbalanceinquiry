@@ -237,11 +237,6 @@ class _ActiveScreen extends StatelessWidget {
                 letterSpacing: 8,
               ),
             ),
-          if (inquiry.patronName != null)
-            Text(
-              inquiry.patronName!.toUpperCase(),
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
-            ),
           // Balance cards centered in the remaining space.
           Expanded(
             child: Center(
