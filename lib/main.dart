@@ -19,8 +19,8 @@ const _error = Color(0xFFE05252);
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations(const [
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
   ]);
   // Kiosk display — hide status + nav bars (swipe briefly reveals, auto-hides).
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -202,26 +202,18 @@ class _ActiveScreen extends StatelessWidget {
             icon: Icons.confirmation_num_outlined,
           ),
           const Spacer(),
-          Row(
-            children: [
-              Expanded(
-                child: _BalanceCard(
-                  label: 'FUN CREDIT BALANCE',
-                  value: _fmt(inquiry.points),
-                  icon: Icons.paid_outlined,
-                  accent: _gold,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _BalanceCard(
-                  label: 'E-TICKETS BALANCE',
-                  value: _fmt(inquiry.tickets),
-                  icon: Icons.confirmation_num_outlined,
-                  accent: _blue,
-                ),
-              ),
-            ],
+          _BalanceCard(
+            label: 'FUN CREDIT BALANCE',
+            value: _fmt(inquiry.points),
+            icon: Icons.paid_outlined,
+            accent: _gold,
+          ),
+          const SizedBox(height: 12),
+          _BalanceCard(
+            label: 'E-TICKETS BALANCE',
+            value: _fmt(inquiry.tickets),
+            icon: Icons.confirmation_num_outlined,
+            accent: _blue,
           ),
           const SizedBox(height: 12),
           const Text(
