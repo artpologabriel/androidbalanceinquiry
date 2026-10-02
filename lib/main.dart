@@ -22,6 +22,8 @@ void main() {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+  // Kiosk display — hide status + nav bars (swipe briefly reveals, auto-hides).
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const BalanceDisplayApp());
 }
 
