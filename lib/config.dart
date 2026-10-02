@@ -26,14 +26,17 @@ class MqttConfig {
       'solaire/$floorId/$machineId/balanceinquiry/receive';
 
   // Defaults mirror the ESP32 swipe station (swipe.ino): production broker is
-  // mqtt.solaireresort.com:8883 (TLS). Credentials are intentionally not
-  // baked in — set them on the settings screen or via --dart-define.
+  // mqtt.solaireresort.com:8883 (TLS).
+  // TODO(security): broker credentials are baked in for now — move to
+  // per-device settings or --dart-define before this repo stays public.
   static const defaults = MqttConfig(
     host: String.fromEnvironment('MQTT_HOST',
         defaultValue: 'mqtt.solaireresort.com'),
     port: int.fromEnvironment('MQTT_PORT', defaultValue: 8883),
-    username: String.fromEnvironment('MQTT_USERNAME', defaultValue: ''),
-    password: String.fromEnvironment('MQTT_PASSWORD', defaultValue: ''),
+    username: String.fromEnvironment('MQTT_USERNAME',
+        defaultValue: 'mqttuser'),
+    password: String.fromEnvironment('MQTT_PASSWORD',
+        defaultValue: 'password1234'),
     floorId: String.fromEnvironment('FLOOR_ID', defaultValue: 'floor1'),
     machineId: String.fromEnvironment('MACHINE_ID', defaultValue: 'MACH-101'),
   );

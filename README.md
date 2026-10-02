@@ -26,9 +26,12 @@ flutter build apk --release \
   --dart-define=MACHINE_ID=MACH-101
 ```
 
-Port `8883` enables TLS automatically. MQTT credentials are **not** baked into
-defaults — this repo is public; set them per device on the settings screen (or
-via `--dart-define=MQTT_USERNAME/MQTT_PASSWORD` in a private CI environment).
+Port `8883` enables TLS automatically.
+
+> **Security note:** broker credentials are currently baked into
+> `lib/config.dart` defaults (temporary). Rotate/move them to per-device
+> settings or CI secrets before relying on this in production — the repo is
+> public.
 
 ## Screens
 
