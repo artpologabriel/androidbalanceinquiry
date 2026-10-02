@@ -53,10 +53,23 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
   StreamSubscription<BalanceInquiry>? _messagesSub;
   StreamSubscription<bool>? _connectionSub;
   Timer? _idleTimer;
+  Timer? _previewTimer;
 
   MqttConfig _config = MqttConfig.defaults;
   BalanceInquiry? _inquiry;
   bool _connected = false;
+  bool _previewMode = false;
+
+  static BalanceInquiry _mockInquiry() => BalanceInquiry(
+        requestId: 'preview',
+        cardId: 'CARD-00009',
+        patronName: 'Juan Cruz',
+        points: 7910,
+        tickets: 2500,
+        ticketsWon: 2,
+        status: 'OK',
+        timestamp: DateTime.now(),
+      );
 
   @override
   void initState() {
@@ -69,9 +82,31 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
     if (!mounted) return;
     setState(() => _config = config);
     _messagesSub = _mqtt.messages.listen(_onInquiry);
-    _connectionSub =
-        _mqtt.connectionState.listen((v) => setState(() => _connected = v));
+    _connectionSub = _mqtt.connectionState.listen(_onConnectionChange);
     await _mqtt.connect(config);
+  }
+
+  /// While the broker is unreachable (e.g. off the Solaire-Device WiFi),
+  /// cycle idle ↔ active every 5s with mock data so the UI can be previewed.
+  void _onConnectionChange(bool connected) {
+    setState(() => _connected = connected);
+    if (connected) {
+      _previewTimer?.cancel();
+      _previewTimer = null;
+      _previewMode = false;
+      _inquiry = null;
+    } else {
+      _previewMode = true;
+      _previewTimer ??=
+          Timer.periodic(const Duration(seconds: 5), (_) => _togglePreview());
+    }
+  }
+
+  void _togglePreview() {
+    if (!mounted) return;
+    setState(() {
+      _inquiry = _inquiry == null ? _mockInquiry() : null;
+    });
   }
 
   void _onInquiry(BalanceInquiry inquiry) {
@@ -95,6 +130,7 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
   @override
   void dispose() {
     _idleTimer?.cancel();
+    _previewTimer?.cancel();
     _messagesSub?.cancel();
     _connectionSub?.cancel();
     unawaited(_mqtt.dispose());
@@ -123,6 +159,18 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
                 right: 8,
                 child: Row(
                   children: [
+                    if (_previewMode)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Text(
+                          'PREVIEW',
+                          style: TextStyle(
+                            color: Colors.orangeAccent,
+                            fontSize: 11,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
                     Icon(
                       Icons.circle,
                       size: 10,
