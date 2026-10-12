@@ -121,7 +121,7 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
           child: Stack(
             children: [
               inquiry == null
-                  ? const _IdleScreen()
+                  ? _IdleScreen(machineId: _config.machineId)
                   : _ActiveScreen(inquiry: inquiry),
               Positioned(
                 top: 4,
@@ -153,21 +153,41 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
 /// Screen saver — shown whenever no balance message is being displayed.
 /// The background artwork already carries the Solaire branding.
 class _IdleScreen extends StatelessWidget {
-  const _IdleScreen();
+  const _IdleScreen({required this.machineId});
+
+  final String machineId;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'SWIPE TO CHECK\nCARD BALANCE',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 34,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 4,
-          height: 1.5,
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+      child: Column(
+        children: [
+          const Expanded(
+            child: Center(
+              child: Text(
+                'SWIPE TO CHECK\nCARD BALANCE',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 4,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            machineId,
+            style: const TextStyle(
+              color: _blue,
+              fontSize: 18,
+              letterSpacing: 6,
+            ),
+          ),
+        ],
       ),
     );
   }
