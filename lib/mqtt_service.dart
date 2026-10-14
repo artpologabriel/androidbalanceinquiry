@@ -114,6 +114,29 @@ class BalanceMqttService {
     _subscription = client.updates?.listen(_onUpdates);
   }
 
+  /// Publish a test inquiry on `solaire/{floor}/{machine}/balanceinquiry/inquire`
+  /// — used by the settings screen to verify the full round trip. The backend
+  /// replies on the subscribed receive topic like a real swipe.
+  /// Returns false when the client is not connected.
+  bool publishTestInquiry(MqttConfig config, String cardId) {
+    final client = _client;
+    if (client?.connectionStatus?.state != MqttConnectionState.connected) {
+      return false;
+    }
+    final payload = jsonEncode({
+      'request_id': 'TEST-${DateTime.now().millisecondsSinceEpoch}',
+      'card_id': cardId,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
+    final builder = MqttClientPayloadBuilder()..addString(payload);
+    client!.publishMessage(
+      'solaire/${config.floorId}/${config.machineId}/balanceinquiry/inquire',
+      MqttQos.atMostOnce,
+      builder.payload!,
+    );
+    return true;
+  }
+
   void _onUpdates(List<MqttReceivedMessage<MqttMessage>> events) {
     for (final event in events) {
       final message = event.payload;

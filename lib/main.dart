@@ -89,7 +89,9 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
 
   Future<void> _openSettings() async {
     final saved = await Navigator.of(context).push<MqttConfig>(
-      MaterialPageRoute(builder: (_) => SettingsPage(config: _config)),
+      MaterialPageRoute(
+        builder: (_) => SettingsPage(config: _config, mqtt: _mqtt),
+      ),
     );
     if (saved == null || !mounted) return;
     setState(() => _config = saved);
@@ -335,9 +337,10 @@ class _BalanceCard extends StatelessWidget {
 
 /// Operator-facing settings for broker + topic coordinates.
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key, required this.config});
+  const SettingsPage({super.key, required this.config, required this.mqtt});
 
   final MqttConfig config;
+  final BalanceMqttService mqtt;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -350,6 +353,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late final TextEditingController _password;
   late final TextEditingController _floorId;
   late final TextEditingController _machineId;
+  late final TextEditingController _testCardId;
 
   @override
   void initState() {
@@ -360,14 +364,47 @@ class _SettingsPageState extends State<SettingsPage> {
     _password = TextEditingController(text: widget.config.password);
     _floorId = TextEditingController(text: widget.config.floorId);
     _machineId = TextEditingController(text: widget.config.machineId);
+    _testCardId = TextEditingController(text: '304539758');
   }
 
   @override
   void dispose() {
-    for (final c in [_host, _port, _username, _password, _floorId, _machineId]) {
+    for (final c in [
+      _host,
+      _port,
+      _username,
+      _password,
+      _floorId,
+      _machineId,
+      _testCardId,
+    ]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  /// Publishes a test inquiry with the entered card id, then pops back so the
+  /// response (if the backend answers) shows on the main screen.
+  void _sendTestInquiry() {
+    final cardId = _testCardId.text.trim();
+    if (cardId.isEmpty) return;
+    // Use the form's floor/machine values so the test can run before saving
+    final testConfig = widget.config.copyWith(
+      floorId: _floorId.text.trim(),
+      machineId: _machineId.text.trim(),
+    );
+    final sent = widget.mqtt.publishTestInquiry(testConfig, cardId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          sent
+              ? 'Test inquiry sent for $cardId — waiting for response…'
+              : 'Not connected to MQTT broker',
+        ),
+      ),
+    );
+    if (sent) Navigator.of(context).pop();
   }
 
   void _save() {
@@ -402,6 +439,13 @@ class _SettingsPageState extends State<SettingsPage> {
             'Subscribed topic: solaire/${_floorId.text}/${_machineId.text}'
             '/balanceinquiry/receive',
             style: const TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+          const Divider(height: 32),
+          _field(_testCardId, 'Test card ID'),
+          OutlinedButton.icon(
+            onPressed: _sendTestInquiry,
+            icon: const Icon(Icons.send, size: 18),
+            label: const Text('Send test balance inquiry'),
           ),
           const SizedBox(height: 16),
           FilledButton(onPressed: _save, child: const Text('Save')),
