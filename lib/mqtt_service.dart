@@ -155,7 +155,12 @@ class BalanceMqttService {
       try {
         final decoded = jsonDecode(text);
         if (decoded is Map<String, dynamic>) {
-          _controller.add(BalanceInquiry.fromJson(decoded));
+          // NestJS ClientMqtt.emit() wraps payloads as {pattern, data} —
+          // unwrap the envelope when present.
+          final payload = decoded['data'] is Map<String, dynamic>
+              ? decoded['data'] as Map<String, dynamic>
+              : decoded;
+          _controller.add(BalanceInquiry.fromJson(payload));
         }
       } catch (_) {
         // Malformed payload — ignore and keep listening.
