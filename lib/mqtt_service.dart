@@ -68,6 +68,10 @@ class BalanceMqttService {
   bool _connected = false;
   bool get isConnected => _connected;
 
+  /// Human-readable reason for the last failed connect attempt.
+  String? _lastError;
+  String? get lastError => _lastError;
+
   Future<void> connect(MqttConfig config) async {
     await disconnect();
 
@@ -98,17 +102,22 @@ class BalanceMqttService {
       } else {
         await client.connect(config.username, config.password);
       }
-    } catch (_) {
+    } catch (e) {
       _connected = false;
+      _lastError = e.toString();
       _connectionController.add(false);
       return;
     }
 
     if (client.connectionStatus?.state != MqttConnectionState.connected) {
       _connected = false;
+      _lastError =
+          'broker refused: ${client.connectionStatus?.returnCode ?? 'unknown'}';
       _connectionController.add(false);
       return;
     }
+
+    _lastError = null;
 
     client.subscribe(config.receiveTopic, MqttQos.atMostOnce);
     _subscription = client.updates?.listen(_onUpdates);

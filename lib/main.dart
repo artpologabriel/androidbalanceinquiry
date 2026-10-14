@@ -144,6 +144,19 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
                   ],
                 ),
               ),
+              if (!_connected && _mqtt.lastError != null)
+                Positioned(
+                  bottom: 48,
+                  left: 24,
+                  right: 24,
+                  child: Text(
+                    'MQTT: ${_mqtt.lastError}',
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _error, fontSize: 11),
+                  ),
+                ),
             ],
           ),
         ),

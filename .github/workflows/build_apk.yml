@@ -30,6 +30,10 @@ jobs:
           # flutter create adds the counter-app template test, which references
           # a MyApp class that does not exist in this app.
           rm -f test/widget_test.dart
+          # Release APKs need INTERNET + ACCESS_NETWORK_STATE — the generated
+          # manifest only carries them in the debug/profile manifests.
+          sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>|' android/app/src/main/AndroidManifest.xml
+          grep -c "uses-permission" android/app/src/main/AndroidManifest.xml
 
       - name: Install dependencies
         run: flutter pub get
