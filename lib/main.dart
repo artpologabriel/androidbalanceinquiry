@@ -113,8 +113,8 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
   void dispose() {
     _idleTimer?.cancel();
     _retryTimer?.cancel();
-    _messagesSub?.cancel();
-    _connectionSub?.cancel();
+    unawaited(_messagesSub?.cancel());
+    unawaited(_connectionSub?.cancel());
     unawaited(_mqtt.dispose());
     super.dispose();
   }
