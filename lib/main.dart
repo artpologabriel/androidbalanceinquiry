@@ -233,14 +233,23 @@ class _ActiveScreen extends StatelessWidget {
           // Clearance for the SOLAIRE logo baked into the background artwork.
           const SizedBox(height: 72),
           if (!ok)
-            const Text(
-              'CARD NOT RECOGNIZED',
-              style: TextStyle(
-                color: _error,
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 8,
-              ),
+            Column(
+              children: [
+                const Text(
+                  'CARD NOT RECOGNIZED',
+                  style: TextStyle(
+                    color: _error,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 8,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'status: ${inquiry.status}',
+                  style: const TextStyle(color: Colors.white38, fontSize: 11),
+                ),
+              ],
             ),
           // Balance cards centered in the remaining space.
           Expanded(
