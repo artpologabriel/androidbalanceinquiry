@@ -84,7 +84,7 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
       // Keep retrying — autoReconnect only works after a first success, so an
       // initial failure (e.g. WiFi not up yet) would otherwise be permanent.
       _retryTimer = Timer(const Duration(seconds: 15), () {
-        if (mounted && !_connected) _mqtt.connect(_config);
+        if (mounted && !_connected) unawaited(_mqtt.connect(_config));
       });
     }
   }
