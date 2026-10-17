@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -85,8 +86,19 @@ class BalanceMqttService {
   Future<void> connect(MqttConfig config) async {
     await disconnect();
 
+    // The private broker name may not resolve on some networks — fall back
+    // to the known broker IP, same as the ESP32 (mqtt_server_ip in
+    // swipe.ino). onBadCertificate below tolerates the cert/IP mismatch.
+    var host = config.host;
+    try {
+      final addrs = await InternetAddress.lookup(host);
+      if (addrs.isEmpty) host = '10.0.18.70';
+    } on SocketException {
+      host = '10.0.18.70';
+    }
+
     final client = MqttServerClient(
-      config.host,
+      host,
       'solaire-balance-display-${config.machineId}-${DateTime.now().millisecondsSinceEpoch}',
     );
     client
