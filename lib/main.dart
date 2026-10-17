@@ -52,6 +52,7 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
   StreamSubscription<BalanceInquiry>? _messagesSub;
   StreamSubscription<bool>? _connectionSub;
   Timer? _idleTimer;
+  Timer? _retryTimer;
 
   MqttConfig _config = MqttConfig.defaults;
   BalanceInquiry? _inquiry;
@@ -77,6 +78,15 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
       _connected = connected;
       if (connected) _inquiry = null;
     });
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    if (!connected) {
+      // Keep retrying — autoReconnect only works after a first success, so an
+      // initial failure (e.g. WiFi not up yet) would otherwise be permanent.
+      _retryTimer = Timer(const Duration(seconds: 15), () {
+        if (mounted && !_connected) _mqtt.connect(_config);
+      });
+    }
   }
 
   void _onInquiry(BalanceInquiry inquiry) {
@@ -102,6 +112,7 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
   @override
   void dispose() {
     _idleTimer?.cancel();
+    _retryTimer?.cancel();
     _messagesSub?.cancel();
     _connectionSub?.cancel();
     unawaited(_mqtt.dispose());

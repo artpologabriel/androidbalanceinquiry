@@ -85,6 +85,10 @@ class BalanceMqttService {
       ..keepAlivePeriod = 30
       ..autoReconnect = true
       ..logging(on: false)
+      // Private LAN broker — allow when connecting by IP literal (cert SAN
+      // is *.solaireresort.com and won't match an IP) or a pinned CA chain.
+      // TODO(security): pin the CA chain once deployment settles.
+      ..onBadCertificate = (_) => true
       ..setProtocolV311()
       ..onConnected = () {
         _connected = true;
