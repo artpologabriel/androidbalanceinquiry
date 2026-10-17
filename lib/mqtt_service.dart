@@ -105,6 +105,7 @@ class BalanceMqttService {
       ..port = config.port
       ..secure = config.port == 8883
       ..keepAlivePeriod = 30
+      ..connectionTimeout = 15000
       ..autoReconnect = true
       ..logging(on: false)
       ..setProtocolV311()
