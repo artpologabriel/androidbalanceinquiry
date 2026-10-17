@@ -28,6 +28,9 @@ class BalanceInquiry {
   final String status;
   final DateTime timestamp;
 
+  /// Raw payload text as received on the wire — for on-device debugging.
+  String? rawPayload;
+
   bool get isOk => status == 'OK';
 
   factory BalanceInquiry.fromJson(Map<String, dynamic> json) {
@@ -71,6 +74,10 @@ class BalanceMqttService {
   /// Human-readable reason for the last failed connect attempt.
   String? _lastError;
   String? get lastError => _lastError;
+
+  /// Raw text of the last MQTT message received, before parsing.
+  String? _lastRawMessage;
+  String? get lastRawMessage => _lastRawMessage;
 
   Future<void> connect(MqttConfig config) async {
     await disconnect();
@@ -156,6 +163,7 @@ class BalanceMqttService {
       if (message is! MqttPublishMessage) continue;
       final text =
           MqttPublishPayload.bytesToStringAsString(message.payload.message);
+      _lastRawMessage = text;
       try {
         final decoded = jsonDecode(text);
         if (decoded is Map<String, dynamic>) {
@@ -164,7 +172,7 @@ class BalanceMqttService {
           final payload = decoded['data'] is Map<String, dynamic>
               ? decoded['data'] as Map<String, dynamic>
               : decoded;
-          _controller.add(BalanceInquiry.fromJson(payload));
+          _controller.add(BalanceInquiry.fromJson(payload)..rawPayload = text);
         }
       } catch (_) {
         // Malformed payload — ignore and keep listening.

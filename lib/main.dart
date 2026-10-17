@@ -134,7 +134,10 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
           child: Stack(
             children: [
               inquiry == null
-                  ? _IdleScreen(machineId: _config.machineId)
+                  ? _IdleScreen(
+                      machineId: _config.machineId,
+                      lastRaw: _mqtt.lastRawMessage,
+                    )
                   : _ActiveScreen(inquiry: inquiry),
               Positioned(
                 top: 4,
@@ -179,9 +182,10 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
 /// Screen saver — shown whenever no balance message is being displayed.
 /// The background artwork already carries the Solaire branding.
 class _IdleScreen extends StatelessWidget {
-  const _IdleScreen({required this.machineId});
+  const _IdleScreen({required this.machineId, this.lastRaw});
 
   final String machineId;
+  final String? lastRaw;
 
   @override
   Widget build(BuildContext context) {
@@ -213,6 +217,20 @@ class _IdleScreen extends StatelessWidget {
               letterSpacing: 6,
             ),
           ),
+          if (lastRaw != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'last recv: $lastRaw',
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white38,
+                fontSize: 10,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -306,6 +324,21 @@ class _ActiveScreen extends StatelessWidget {
               letterSpacing: 6,
             ),
           ),
+          if (inquiry.rawPayload != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                inquiry.rawPayload!,
+                textAlign: TextAlign.center,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white38,
+                  fontSize: 10,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ),
         ],
       ),
     );
