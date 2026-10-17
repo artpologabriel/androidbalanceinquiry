@@ -84,73 +84,70 @@ class BalanceMqttService {
   String? get lastRawMessage => _lastRawMessage;
 
   Future<void> connect(MqttConfig config) async {
-    await disconnect();
-
-    // The private broker name may not resolve on some networks — fall back
-    // to the known broker IP, same as the ESP32 (mqtt_server_ip in
-    // swipe.ino). onBadCertificate below tolerates the cert/IP mismatch.
-    var host = config.host;
     try {
-      final addrs = await InternetAddress.lookup(host);
-      if (addrs.isEmpty) host = '10.0.18.70';
-    } on SocketException {
-      host = '10.0.18.70';
-    }
-
-    final client = MqttServerClient(
-      host,
-      'solaire-balance-display-${config.machineId}-${DateTime.now().millisecondsSinceEpoch}',
-    );
-    client
-      ..port = config.port
-      ..secure = config.port == 8883
-      ..keepAlivePeriod = 30
-      ..connectionTimeout = 15000
-      ..autoReconnect = true
-      ..logging(on: false)
-      ..setProtocolV311()
-      ..onConnected = () {
-        _connected = true;
-        _connectionController.add(true);
+      await disconnect();
+      // The private broker name may not resolve on some networks — fall back
+      // to the known broker IP, same as the ESP32 (mqtt_server_ip in
+      // swipe.ino). onBadCertificate below tolerates the cert/IP mismatch.
+      var host = config.host;
+      try {
+        final addrs = await InternetAddress.lookup(host);
+        if (addrs.isEmpty) host = '10.0.18.70';
+      } catch (_) {
+        host = '10.0.18.70';
       }
-      ..onDisconnected = () {
-        _connected = false;
-        _connectionController.add(false);
-      };
-    // Private LAN broker — allow when connecting by IP literal (cert SAN
-    // is *.solaireresort.com and won't match an IP) or a pinned CA chain.
-    // Parameter must be Object: MqttServerClient internally casts this to
-    // bool Function(Object) — a bool Function(X509Certificate) fails that cast
-    // and the connect attempt dies with a CastError.
-    // TODO(security): pin the CA chain once deployment settles.
-    client.onBadCertificate = (Object cert) => true;
-    _client = client;
 
-    try {
+      final client = MqttServerClient(
+        host,
+        'solaire-balance-display-${config.machineId}-${DateTime.now().millisecondsSinceEpoch}',
+      );
+      client
+        ..port = config.port
+        ..secure = config.port == 8883
+        ..keepAlivePeriod = 30
+        ..connectionTimeout = 15000
+        ..autoReconnect = true
+        ..logging(on: false)
+        ..setProtocolV311()
+        ..onConnected = () {
+          _connected = true;
+          _connectionController.add(true);
+        }
+        ..onDisconnected = () {
+          _connected = false;
+          _connectionController.add(false);
+        };
+      // Private LAN broker — allow when connecting by IP literal (cert SAN
+      // is *.solaireresort.com and won't match an IP) or a pinned CA chain.
+      // Parameter must be Object: MqttServerClient internally casts this to
+      // bool Function(Object) — a bool Function(X509Certificate) fails that
+      // cast and the connect attempt dies with a CastError.
+      // TODO(security): pin the CA chain once deployment settles.
+      client.onBadCertificate = (Object cert) => true;
+      _client = client;
+
       if (config.username.isEmpty) {
         await client.connect();
       } else {
         await client.connect(config.username, config.password);
       }
+
+      if (client.connectionStatus?.state != MqttConnectionState.connected) {
+        _connected = false;
+        _lastError =
+            'broker refused: ${client.connectionStatus?.returnCode ?? 'unknown'}';
+        _connectionController.add(false);
+        return;
+      }
+
+      _lastError = null;
+      client.subscribe(config.receiveTopic, MqttQos.atMostOnce);
+      _subscription = client.updates?.listen(_onUpdates);
     } catch (e) {
       _connected = false;
       _lastError = e.toString();
       _connectionController.add(false);
-      return;
     }
-
-    if (client.connectionStatus?.state != MqttConnectionState.connected) {
-      _connected = false;
-      _lastError =
-          'broker refused: ${client.connectionStatus?.returnCode ?? 'unknown'}';
-      _connectionController.add(false);
-      return;
-    }
-
-    _lastError = null;
-
-    client.subscribe(config.receiveTopic, MqttQos.atMostOnce);
-    _subscription = client.updates?.listen(_onUpdates);
   }
 
   /// Publish a test inquiry on `solaire/{floor}/{machine}/balanceinquiry/inquire`
