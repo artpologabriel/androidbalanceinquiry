@@ -65,11 +65,17 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
   }
 
   Future<void> _boot() async {
-    final config = await MqttConfig.load();
-    if (!mounted) return;
-    setState(() => _config = config);
+    // Wire streams first so failures below still surface through the UI.
     _messagesSub = _mqtt.messages.listen(_onInquiry);
     _connectionSub = _mqtt.connectionState.listen(_onConnectionChange);
+    MqttConfig config;
+    try {
+      config = await MqttConfig.load();
+    } catch (_) {
+      config = MqttConfig.defaults;
+    }
+    if (!mounted) return;
+    setState(() => _config = config);
     await _mqtt.connect(config);
   }
 
@@ -158,19 +164,27 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
                   ],
                 ),
               ),
-              if (!_connected && _mqtt.lastError != null)
-                Positioned(
-                  bottom: 48,
-                  left: 24,
-                  right: 24,
-                  child: Text(
-                    'MQTT: ${_mqtt.lastError}',
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _error, fontSize: 11),
+              // Always-visible MQTT status line: connecting target, error
+              // text, or confirmed connected host — nothing stays silent.
+              Positioned(
+                bottom: 48,
+                left: 24,
+                right: 24,
+                child: Text(
+                  _connected
+                      ? 'connected: ${_config.host}:${_config.port}'
+                      : (_mqtt.lastError != null
+                          ? 'MQTT: ${_mqtt.lastError}'
+                          : 'connecting to ${_config.host}:${_config.port}…'),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _connected ? Colors.white38 : _error,
+                    fontSize: 11,
                   ),
                 ),
+              ),
             ],
           ),
         ),
