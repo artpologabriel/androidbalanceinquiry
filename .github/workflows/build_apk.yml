@@ -39,7 +39,15 @@ jobs:
         run: flutter pub get
 
       - name: Analyze
-        run: flutter analyze
+        run: |
+          out=$(flutter analyze 2>&1) && status=0 || status=$?
+          echo "$out"
+          if [ "$status" -ne 0 ]; then
+            # Surface each analyzer line as a check annotation so it's visible
+            # on the run page / check-runs API without opening the raw log.
+            echo "$out" | sed 's/^/::error::/'
+            exit "$status"
+          fi
 
       - name: Test
         run: flutter test
