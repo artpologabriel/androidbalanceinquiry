@@ -18,7 +18,6 @@ class BalanceInquiry {
     required this.ticketsWon,
     required this.status,
     required this.timestamp,
-    this.rawPayload,
   });
 
   final String requestId;
@@ -30,13 +29,9 @@ class BalanceInquiry {
   final String status;
   final DateTime timestamp;
 
-  /// Raw payload text as received on the wire — for on-device debugging.
-  final String? rawPayload;
-
   bool get isOk => status == 'OK';
 
-  factory BalanceInquiry.fromJson(Map<String, dynamic> json,
-      {String? rawPayload}) {
+  factory BalanceInquiry.fromJson(Map<String, dynamic> json) {
     return BalanceInquiry(
       requestId: json['request_id'] as String? ?? '',
       cardId: json['card_id'] as String?,
@@ -47,7 +42,6 @@ class BalanceInquiry {
       status: json['status'] as String? ?? 'ERROR',
       timestamp: DateTime.tryParse(json['timestamp'] as String? ?? '') ??
           DateTime.now(),
-      rawPayload: rawPayload,
     );
   }
 
@@ -78,10 +72,6 @@ class BalanceMqttService {
   /// Human-readable reason for the last failed connect attempt.
   String? _lastError;
   String? get lastError => _lastError;
-
-  /// Raw text of the last MQTT message received, before parsing.
-  String? _lastRawMessage;
-  String? get lastRawMessage => _lastRawMessage;
 
   Future<void> connect(MqttConfig config) async {
     try {
@@ -179,7 +169,6 @@ class BalanceMqttService {
       if (message is! MqttPublishMessage) continue;
       final text =
           MqttPublishPayload.bytesToStringAsString(message.payload.message);
-      _lastRawMessage = text;
       try {
         final decoded = jsonDecode(text);
         if (decoded is Map<String, dynamic>) {
@@ -188,8 +177,7 @@ class BalanceMqttService {
           final payload = decoded['data'] is Map<String, dynamic>
               ? decoded['data'] as Map<String, dynamic>
               : decoded;
-          _controller
-              .add(BalanceInquiry.fromJson(payload, rawPayload: text));
+          _controller.add(BalanceInquiry.fromJson(payload));
         }
       } catch (_) {
         // Malformed payload — ignore and keep listening.

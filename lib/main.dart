@@ -140,10 +140,7 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
           child: Stack(
             children: [
               inquiry == null
-                  ? _IdleScreen(
-                      machineId: _config.machineId,
-                      lastRaw: _mqtt.lastRawMessage,
-                    )
+                  ? _IdleScreen(machineId: _config.machineId)
                   : _ActiveScreen(inquiry: inquiry),
               Positioned(
                 top: 4,
@@ -164,27 +161,7 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
                   ],
                 ),
               ),
-              // Always-visible MQTT status line: connecting target, error
-              // text, or confirmed connected host — nothing stays silent.
-              Positioned(
-                bottom: 48,
-                left: 24,
-                right: 24,
-                child: Text(
-                  _connected
-                      ? 'connected: ${_config.host}:${_config.port}'
-                      : (_mqtt.lastError != null
-                          ? 'MQTT: ${_mqtt.lastError}'
-                          : 'connecting to ${_config.host}:${_config.port}…'),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _connected ? Colors.white38 : _error,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
+
             ],
           ),
         ),
@@ -196,10 +173,9 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
 /// Screen saver — shown whenever no balance message is being displayed.
 /// The background artwork already carries the Solaire branding.
 class _IdleScreen extends StatelessWidget {
-  const _IdleScreen({required this.machineId, this.lastRaw});
+  const _IdleScreen({required this.machineId});
 
   final String machineId;
-  final String? lastRaw;
 
   @override
   Widget build(BuildContext context) {
@@ -231,20 +207,6 @@ class _IdleScreen extends StatelessWidget {
               letterSpacing: 6,
             ),
           ),
-          if (lastRaw != null) ...[
-            const SizedBox(height: 6),
-            Text(
-              'last recv: $lastRaw',
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white38,
-                fontSize: 10,
-                fontFamily: 'monospace',
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -276,23 +238,14 @@ class _ActiveScreen extends StatelessWidget {
           // Clearance for the SOLAIRE logo baked into the background artwork.
           const SizedBox(height: 72),
           if (!ok)
-            Column(
-              children: [
-                const Text(
-                  'CARD NOT RECOGNIZED',
-                  style: TextStyle(
-                    color: _error,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 8,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'status: ${inquiry.status}',
-                  style: const TextStyle(color: Colors.white38, fontSize: 11),
-                ),
-              ],
+            const Text(
+              'CARD NOT RECOGNIZED',
+              style: TextStyle(
+                color: _error,
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 8,
+              ),
             ),
           // Balance cards centered in the remaining space.
           Expanded(
@@ -338,21 +291,6 @@ class _ActiveScreen extends StatelessWidget {
               letterSpacing: 6,
             ),
           ),
-          if (inquiry.rawPayload != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                inquiry.rawPayload!,
-                textAlign: TextAlign.center,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white38,
-                  fontSize: 10,
-                  fontFamily: 'monospace',
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -480,7 +418,8 @@ class _SettingsPageState extends State<SettingsPage> {
         content: Text(
           sent
               ? 'Test inquiry sent for $cardId — waiting for response…'
-              : 'Not connected to MQTT broker',
+              : 'Not connected to MQTT broker'
+                  '${widget.mqtt.lastError != null ? ': ${widget.mqtt.lastError}' : ''}',
         ),
       ),
     );
