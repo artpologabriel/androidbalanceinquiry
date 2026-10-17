@@ -17,6 +17,7 @@ class BalanceInquiry {
     required this.ticketsWon,
     required this.status,
     required this.timestamp,
+    this.rawPayload,
   });
 
   final String requestId;
@@ -29,11 +30,12 @@ class BalanceInquiry {
   final DateTime timestamp;
 
   /// Raw payload text as received on the wire — for on-device debugging.
-  String? rawPayload;
+  final String? rawPayload;
 
   bool get isOk => status == 'OK';
 
-  factory BalanceInquiry.fromJson(Map<String, dynamic> json) {
+  factory BalanceInquiry.fromJson(Map<String, dynamic> json,
+      {String? rawPayload}) {
     return BalanceInquiry(
       requestId: json['request_id'] as String? ?? '',
       cardId: json['card_id'] as String?,
@@ -44,6 +46,7 @@ class BalanceInquiry {
       status: json['status'] as String? ?? 'ERROR',
       timestamp: DateTime.tryParse(json['timestamp'] as String? ?? '') ??
           DateTime.now(),
+      rawPayload: rawPayload,
     );
   }
 
@@ -172,7 +175,8 @@ class BalanceMqttService {
           final payload = decoded['data'] is Map<String, dynamic>
               ? decoded['data'] as Map<String, dynamic>
               : decoded;
-          _controller.add(BalanceInquiry.fromJson(payload)..rawPayload = text);
+          _controller
+              .add(BalanceInquiry.fromJson(payload, rawPayload: text));
         }
       } catch (_) {
         // Malformed payload — ignore and keep listening.
