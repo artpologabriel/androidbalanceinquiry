@@ -106,8 +106,11 @@ class BalanceMqttService {
       };
     // Private LAN broker — allow when connecting by IP literal (cert SAN
     // is *.solaireresort.com and won't match an IP) or a pinned CA chain.
+    // Parameter must be Object: MqttServerClient internally casts this to
+    // bool Function(Object) — a bool Function(X509Certificate) fails that cast
+    // and the connect attempt dies with a CastError.
     // TODO(security): pin the CA chain once deployment settles.
-    client.onBadCertificate = (_) => true;
+    client.onBadCertificate = (Object cert) => true;
     _client = client;
 
     try {
