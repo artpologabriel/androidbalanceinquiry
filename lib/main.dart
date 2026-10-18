@@ -111,13 +111,23 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
     );
     if (saved == null || !mounted) return;
     setState(() => _config = saved);
-    await saved.save();
-    final verify = await MqttConfig.load();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Saved: ${verify.machineId}')),
-    );
+    // Apply the new config first — the topic switch must happen even if the
+    // disk write below fails, otherwise the display keeps the old
+    // subscription (e.g. still receiving another machine's responses).
     await _mqtt.connect(saved);
+    try {
+      await saved.save();
+      final verify = await MqttConfig.load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved: ${verify.machineId}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Save failed: $e — applied until restart')),
+      );
+    }
   }
 
   @override
