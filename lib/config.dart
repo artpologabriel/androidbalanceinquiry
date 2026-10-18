@@ -48,16 +48,29 @@ class MqttConfig {
   static const _keyFloorId = 'floor_id';
   static const _keyMachineId = 'machine_id';
 
-  /// Saved overrides merged over the dart-define defaults.
+  /// Saved overrides merged over the dart-define defaults. Each field is
+  /// read defensively — a type-mismatched value (e.g. a port stored as a
+  /// string by an older build) must not throw away the rest of the config.
   static Future<MqttConfig> load() async {
     final prefs = await SharedPreferences.getInstance();
+    String str(String key, String fallback) {
+      final value = prefs.get(key);
+      return value == null ? fallback : '$value';
+    }
+
+    int intOr(String key, int fallback) {
+      final value = prefs.get(key);
+      if (value is int) return value;
+      return int.tryParse('$value') ?? fallback;
+    }
+
     return MqttConfig(
-      host: prefs.getString(_keyHost) ?? defaults.host,
-      port: prefs.getInt(_keyPort) ?? defaults.port,
-      username: prefs.getString(_keyUsername) ?? defaults.username,
-      password: prefs.getString(_keyPassword) ?? defaults.password,
-      floorId: prefs.getString(_keyFloorId) ?? defaults.floorId,
-      machineId: prefs.getString(_keyMachineId) ?? defaults.machineId,
+      host: str(_keyHost, defaults.host),
+      port: intOr(_keyPort, defaults.port),
+      username: str(_keyUsername, defaults.username),
+      password: str(_keyPassword, defaults.password),
+      floorId: str(_keyFloorId, defaults.floorId),
+      machineId: str(_keyMachineId, defaults.machineId),
     );
   }
 
