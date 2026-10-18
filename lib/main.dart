@@ -112,6 +112,11 @@ class _BalanceDisplayPageState extends State<BalanceDisplayPage> {
     if (saved == null || !mounted) return;
     setState(() => _config = saved);
     await saved.save();
+    final verify = await MqttConfig.load();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Saved: ${verify.machineId}')),
+    );
     await _mqtt.connect(saved);
   }
 

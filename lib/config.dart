@@ -82,6 +82,9 @@ class MqttConfig {
     await prefs.setString(_keyPassword, password);
     await prefs.setString(_keyFloorId, floorId);
     await prefs.setString(_keyMachineId, machineId);
+    // Force a platform round-trip — guarantees pending writes are committed
+    // to disk before the caller proceeds.
+    await prefs.reload();
   }
 
   MqttConfig copyWith({
